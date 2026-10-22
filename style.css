@@ -1,0 +1,555 @@
+/* ==========================================================================
+   Wedding Photo & Video Booth Stylesheet
+   Theme: "Share the Love" / "Raikan Cinta" - Is and Mimi (24.10.2026)
+   ========================================================================== */
+
+:root {
+  --bg-primary: #FAF7F2;
+  --bg-card: #FFFFFF;
+  --text-primary: #2C2825;
+  --text-muted: #7A726B;
+  --accent-gold: #C5A880;
+  --accent-gold-dark: #A8865B;
+  --accent-rose: #E8D8CF;
+  --accent-warm-grey: #ECE7DF;
+  --border-subtle: #E5DEC9;
+  --border-focus: #C5A880;
+  --danger-color: #B23B3B;
+  --danger-bg: #FDEDED;
+  --success-color: #2E7D32;
+  --success-bg: #E8F5E9;
+  
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-script: 'Great Vibes', cursive;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  
+  --shadow-soft: 0 10px 30px rgba(50, 40, 30, 0.06);
+  --shadow-medium: 0 14px 40px rgba(50, 40, 30, 0.12);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 8px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px 12px 32px 12px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Background Subtle Floral Motif Watermark */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(circle at 10% 15%, rgba(197, 168, 128, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 85%, rgba(232, 216, 207, 0.15) 0%, transparent 45%);
+  z-index: -1;
+}
+
+.app-wrapper {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Card Container */
+.card-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 28px 22px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Card Decorative Header */
+.card-header-art {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.icon-art {
+  width: 38px;
+  height: 38px;
+  stroke: var(--text-primary);
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-title-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.script-subheading {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.script-title {
+  font-family: var(--font-script);
+  font-size: 4.2rem;
+  line-height: 1;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-weight: normal;
+}
+
+.couple-names {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.wedding-date {
+  font-size: 0.88rem;
+  letter-spacing: 0.15em;
+  color: var(--accent-gold-dark);
+  font-weight: 600;
+}
+
+.divider-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+  margin: 18px 0 24px 0;
+}
+
+/* Screens Management */
+.screen {
+  display: none;
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.input-text {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input-text:focus {
+  border-color: var(--border-focus);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(197, 168, 128, 0.15);
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: block;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--text-primary);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3A3532;
+  box-shadow: 0 6px 18px rgba(44, 40, 37, 0.25);
+}
+
+.btn-primary:disabled {
+  background: #C4BFB9;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-secondary {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background: #F1ECE3;
+  border-color: var(--accent-gold);
+}
+
+.btn-danger-outline {
+  background: var(--danger-bg);
+  color: var(--danger-color);
+  border: 1px solid rgba(178, 59, 59, 0.3);
+}
+
+.btn-danger-outline:hover {
+  background: #FCE1E1;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, #D4BA94 0%, #B89569 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(184, 149, 105, 0.3);
+}
+
+.btn-gold:hover:not(:disabled) {
+  background: linear-gradient(135deg, #DBBF9B 0%, #AA865B 100%);
+  box-shadow: 0 6px 18px rgba(184, 149, 105, 0.4);
+}
+
+/* Progress Step Indicator */
+.step-indicator-wrapper {
+  margin-bottom: 20px;
+}
+
+.step-tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.step-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.step-dot {
+  flex: 1;
+  height: 6px;
+  background: var(--accent-warm-grey);
+  border-radius: 999px;
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--accent-gold);
+}
+
+.step-dot.completed {
+  background: var(--text-primary);
+}
+
+/* Capture & Preview Box */
+.media-slot-card {
+  background: #FAF9F6;
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  min-height: 290px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+  transition: border-color 0.2s ease;
+}
+
+.media-slot-card.has-media {
+  border-style: solid;
+  border-color: var(--accent-gold);
+  background: #000;
+}
+
+.media-preview-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-media-element {
+  max-width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+  display: block;
+}
+
+.capture-placeholder {
+  text-align: center;
+  padding: 30px 16px;
+}
+
+.capture-icon-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--accent-warm-grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  color: var(--text-primary);
+}
+
+.capture-placeholder h3 {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  margin-bottom: 6px;
+}
+
+.capture-placeholder p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.action-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.buttons-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Review Screen Grid */
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.review-item {
+  position: relative;
+  background: #F5F1EB;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+}
+
+.review-item.span-2 {
+  grid-column: span 2;
+  aspect-ratio: 16 / 9;
+}
+
+.review-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.review-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(44, 40, 37, 0.75);
+  color: #FFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.review-retake-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Upload Progress Modal / State */
+.uploading-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(250, 247, 242, 0.95);
+  backdrop-filter: blur(6px);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.uploading-overlay.active {
+  display: flex;
+}
+
+.upload-modal-box {
+  background: #FFF;
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-subtle);
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  background: var(--accent-warm-grey);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 18px 0 10px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-gold);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* Success Card */
+.success-content {
+  text-align: center;
+  padding: 10px 0 20px 0;
+}
+
+.success-badge-icon {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 16px auto;
+  background: var(--success-bg);
+  color: var(--success-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #2C2825;
+  color: #FFF;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-medium);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Footer note */
+.app-footer {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 18px;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .script-title {
+    font-size: 3.5rem;
+  }
+  .couple-names {
+    font-size: 1.3rem;
+  }
+  .card-container {
+    padding: 22px 16px;
+  }
+}
