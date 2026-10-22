@@ -10,8 +10,8 @@
   const CONFIG = {
     TOTAL_ITEMS: 5,
     // Supabase project settings: replace with your actual Supabase URL and Anon/Public Key
-    SUPABASE_URL: 'https://xyzcompany.supabase.co',
-    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder-anon-key',
+    SUPABASE_URL: 'https://urhyswacrvdesurdjvos.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaHlzd2FjcnZkZXN1cmRqdm9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2ODcwOTUsImV4cCI6MjEwODI2MzA5NX0.6hKIfXSdebKyBoe4MlIbak2kEM5Xvgf_W6nwlUXOhUg',
     SUPABASE_BUCKET: 'wedding-photos',
     // Max size per file (in MB)
     MAX_FILE_SIZE_MB: 100
@@ -19,7 +19,7 @@
 
   // Initialize Supabase Client
   const isPlaceholderConfig = 
-    CONFIG.SUPABASE_URL.includes('xyzcompany') || 
+    CONFIG.SUPABASE_URL.includes('urhyswacrvdesurdjvos') || 
     CONFIG.SUPABASE_ANON_KEY.includes('placeholder');
 
   let supabase = null;
