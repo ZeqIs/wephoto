@@ -1,5 +1,5 @@
 /**
- * Wedding Photo & Video Booth Frontend Logic
+ * Wedding Photo & Video Booth Frontend Logic (Supabase Version)
  * Theme: "Share the Love" - Is and Mimi (24.10.2026)
  */
 
@@ -9,11 +9,27 @@
   // --- Configuration ---
   const CONFIG = {
     TOTAL_ITEMS: 5,
-    // Replace with your actual AWS API Gateway endpoint when deployed
-    API_ENDPOINT: 'https://your-api-id.execute-api.us-east-1.amazonaws.com/upload-urls',
-    // Allowed file types
+    // Supabase project settings: replace with your actual Supabase URL and Anon/Public Key
+    SUPABASE_URL: 'https://xyzcompany.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder-anon-key',
+    SUPABASE_BUCKET: 'wedding-photos',
+    // Max size per file (in MB)
     MAX_FILE_SIZE_MB: 100
   };
+
+  // Initialize Supabase Client
+  const isPlaceholderConfig = 
+    CONFIG.SUPABASE_URL.includes('xyzcompany') || 
+    CONFIG.SUPABASE_ANON_KEY.includes('placeholder');
+
+  let supabase = null;
+  if (typeof window !== 'undefined' && window.supabase && !isPlaceholderConfig) {
+    try {
+      supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    } catch (err) {
+      console.warn('Could not initialize Supabase client:', err);
+    }
+  }
 
   // --- Application State ---
   const state = {
@@ -24,48 +40,50 @@
   };
 
   // --- DOM Elements ---
-  const screens = {
+  const screens = (typeof document !== 'undefined') ? {
     welcome: document.getElementById('screen-welcome'),
     capture: document.getElementById('screen-capture'),
     review: document.getElementById('screen-review'),
     success: document.getElementById('screen-success')
-  };
+  } : {};
 
   // Inputs & buttons
-  const guestNameInput = document.getElementById('guest-name-input');
-  const btnStart = document.getElementById('btn-start');
-  const guestBadgeName = document.getElementById('guest-badge-name');
-  const stepLabel = document.getElementById('step-label');
-  const stepDotsContainer = document.getElementById('step-dots-container');
+  const getEl = (id) => (typeof document !== 'undefined' ? document.getElementById(id) : null);
 
-  const mediaSlotCard = document.getElementById('media-slot-card');
-  const capturePlaceholder = document.getElementById('capture-placeholder');
-  const mediaPreviewContainer = document.getElementById('media-preview-container');
-  const slotInstructionTitle = document.getElementById('slot-instruction-title');
+  const guestNameInput = getEl('guest-name-input');
+  const btnStart = getEl('btn-start');
+  const guestBadgeName = getEl('guest-badge-name');
+  const stepLabel = getEl('step-label');
+  const stepDotsContainer = getEl('step-dots-container');
 
-  const inputCameraPhoto = document.getElementById('input-camera-photo');
-  const inputCameraVideo = document.getElementById('input-camera-video');
-  const inputGalleryFile = document.getElementById('input-gallery-file');
+  const mediaSlotCard = getEl('media-slot-card');
+  const capturePlaceholder = getEl('capture-placeholder');
+  const mediaPreviewContainer = getEl('media-preview-container');
+  const slotInstructionTitle = getEl('slot-instruction-title');
 
-  const btnTakePhoto = document.getElementById('btn-take-photo');
-  const btnTakeVideo = document.getElementById('btn-take-video');
-  const btnOpenGallery = document.getElementById('btn-open-gallery');
+  const inputCameraPhoto = getEl('input-camera-photo');
+  const inputCameraVideo = getEl('input-camera-video');
+  const inputGalleryFile = getEl('input-gallery-file');
 
-  const initialCaptureActions = document.getElementById('initial-capture-actions');
-  const confirmRetakeActions = document.getElementById('confirm-retake-actions');
-  const btnConfirmNext = document.getElementById('btn-confirm-next');
-  const btnCancelRetake = document.getElementById('btn-cancel-retake');
-  const confirmBtnLabel = document.getElementById('confirm-btn-label');
+  const btnTakePhoto = getEl('btn-take-photo');
+  const btnTakeVideo = getEl('btn-take-video');
+  const btnOpenGallery = getEl('btn-open-gallery');
 
-  const reviewGrid = document.getElementById('review-grid');
-  const btnSubmitAll = document.getElementById('btn-submit-all');
-  const btnRestart = document.getElementById('btn-restart');
+  const initialCaptureActions = getEl('initial-capture-actions');
+  const confirmRetakeActions = getEl('confirm-retake-actions');
+  const btnConfirmNext = getEl('btn-confirm-next');
+  const btnCancelRetake = getEl('btn-cancel-retake');
+  const confirmBtnLabel = getEl('confirm-btn-label');
 
-  const uploadingOverlay = document.getElementById('uploading-overlay');
-  const uploadStatusText = document.getElementById('upload-status-text');
-  const progressFill = document.getElementById('progress-fill');
-  const progressPercentage = document.getElementById('progress-percentage');
-  const toastNotification = document.getElementById('toast-notification');
+  const reviewGrid = getEl('review-grid');
+  const btnSubmitAll = getEl('btn-submit-all');
+  const btnRestart = getEl('btn-restart');
+
+  const uploadingOverlay = getEl('uploading-overlay');
+  const uploadStatusText = getEl('upload-status-text');
+  const progressFill = getEl('progress-fill');
+  const progressPercentage = getEl('progress-percentage');
+  const toastNotification = getEl('toast-notification');
 
   // --- Utility Functions ---
 
@@ -83,14 +101,36 @@
     return clean.length > 0 ? clean.substring(0, 40) : 'Guest';
   }
 
+  function generateSessionCode(length = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+      const values = new Uint8Array(length);
+      window.crypto.getRandomValues(values);
+      for (let i = 0; i < length; i++) {
+        result += chars[values[i] % chars.length];
+      }
+    } else {
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+    }
+    return result;
+  }
+
   function getFileExtension(file) {
     if (file.name && file.name.includes('.')) {
-      return file.name.split('.').pop().toLowerCase();
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (/^[a-z0-9]{2,5}$/.test(ext)) return ext;
     }
     if (file.type === 'video/mp4') return 'mp4';
     if (file.type === 'video/quicktime') return 'mov';
+    if (file.type === 'video/webm') return 'webm';
+    if (file.type === 'video/3gpp') return '3gp';
     if (file.type === 'image/jpeg') return 'jpg';
     if (file.type === 'image/png') return 'png';
+    if (file.type === 'image/webp') return 'webp';
+    if (file.type === 'image/heic') return 'heic';
     return 'bin';
   }
 
@@ -253,101 +293,69 @@
     });
   }
 
-  // --- S3 Direct Upload Flow ---
+  // --- Upload Handlers ---
 
-  async function requestPresignedUrls() {
-    const payload = {
-      name: sanitizeName(state.guestName),
-      files: state.slots.map(item => ({
-        type: item.file.type || (item.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-        extension: getFileExtension(item.file)
-      }))
-    };
-
-    const response = await fetch(CONFIG.API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error || `Server responded with status ${response.status}`);
-    }
-
-    return await response.json();
-  }
-
-  // Fallback simulator for offline preview / demo testing
+  // Demo fallback simulation when testing without live Supabase credentials
   async function simulateUploadProgress(statusCallback) {
     for (let i = 1; i <= CONFIG.TOTAL_ITEMS; i++) {
-      statusCallback(`Uploading item ${i} of ${CONFIG.TOTAL_ITEMS}...`, (i / CONFIG.TOTAL_ITEMS) * 90);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      statusCallback(`Demo Mode: Uploading item ${i} of ${CONFIG.TOTAL_ITEMS}...`, (i / CONFIG.TOTAL_ITEMS) * 90);
+      await new Promise(resolve => setTimeout(resolve, 450));
     }
     statusCallback('Finalizing uploads...', 100);
     await new Promise(resolve => setTimeout(resolve, 300));
   }
 
-  async function uploadItemToS3(uploadUrl, file, onProgress) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', uploadUrl, true);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+  async function uploadItemToSupabase(fileName, file) {
+    if (!supabase) {
+      throw new Error('Supabase client is not initialized. Please verify your SUPABASE_URL and SUPABASE_ANON_KEY.');
+    }
 
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable && onProgress) {
-          onProgress(e.loaded / e.total);
-        }
-      };
+    const { data, error } = await supabase.storage
+      .from(CONFIG.SUPABASE_BUCKET)
+      .upload(fileName, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false
+      });
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve();
-        } else {
-          reject(new Error(`S3 upload returned HTTP ${xhr.status}`));
-        }
-      };
+    if (error) {
+      throw error;
+    }
 
-      xhr.onerror = () => reject(new Error('Network error uploading to S3. Check S3 CORS configuration.'));
-      xhr.send(file);
-    });
+    return data;
   }
 
   async function handleSubmitAll() {
     uploadingOverlay.classList.add('active');
-    uploadStatusText.textContent = 'Requesting secure upload authorization...';
+    uploadStatusText.textContent = 'Preparing uploads...';
     progressFill.style.width = '10%';
     progressPercentage.textContent = '10%';
 
-    const isPlaceholderEndpoint = CONFIG.API_ENDPOINT.includes('your-api-id');
+    const sanitizedName = sanitizeName(state.guestName);
+    const sessionCode = generateSessionCode(8);
 
     try {
-      if (isPlaceholderEndpoint) {
-        // Run demo simulation when API Gateway is not yet linked
-        uploadStatusText.textContent = 'Demo Mode: Simulating direct S3 upload...';
+      if (isPlaceholderConfig) {
+        // Run demo simulation mode if real Supabase keys aren't configured yet
         await simulateUploadProgress((msg, pct) => {
           uploadStatusText.textContent = msg;
           progressFill.style.width = `${pct}%`;
           progressPercentage.textContent = `${Math.round(pct)}%`;
         });
       } else {
-        // Live AWS Upload Flow
-        const urlData = await requestPresignedUrls();
-        const items = urlData.items;
-
+        // Direct upload to Supabase Storage
         for (let i = 0; i < state.slots.length; i++) {
           const item = state.slots[i];
-          const uploadInfo = items[i];
+          const ext = getFileExtension(item.file);
+          // Strict naming convention: [SanitizedUserName]_[8-Char-Alphanumerical-Code]_[Counter].[ext]
+          const fileName = `${sanitizedName}_${sessionCode}_${i + 1}.${ext}`;
 
           uploadStatusText.textContent = `Uploading memory ${i + 1} of ${CONFIG.TOTAL_ITEMS}...`;
 
-          await uploadItemToS3(uploadInfo.uploadUrl, item.file, (fileRatio) => {
-            const overallPct = Math.round(((i + fileRatio) / CONFIG.TOTAL_ITEMS) * 100);
-            progressFill.style.width = `${overallPct}%`;
-            progressPercentage.textContent = `${overallPct}%`;
-          });
+          await uploadItemToSupabase(fileName, item.file);
+
+          const overallPct = Math.round(((i + 1) / CONFIG.TOTAL_ITEMS) * 100);
+          progressFill.style.width = `${overallPct}%`;
+          progressPercentage.textContent = `${overallPct}%`;
         }
       }
 
@@ -364,7 +372,7 @@
     } catch (err) {
       console.error('Upload Error:', err);
       uploadingOverlay.classList.remove('active');
-      showToast(`Upload failed: ${err.message}. Please try again.`);
+      showToast(`Upload failed: ${err.message || err}. Please try again.`);
     }
   }
 
@@ -470,7 +478,19 @@
     btnRestart.addEventListener('click', resetSession);
   }
 
-  // Initialize
-  initEventListeners();
+  // Initialize in browser
+  if (typeof document !== 'undefined') {
+    initEventListeners();
+  }
+
+  // Export helpers for unit testing if running in Node.js
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      sanitizeName,
+      generateSessionCode,
+      getFileExtension,
+      CONFIG
+    };
+  }
 
 })();
