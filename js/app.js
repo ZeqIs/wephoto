@@ -19,7 +19,7 @@
 
   // Initialize Supabase Client
   const isPlaceholderConfig = 
-    CONFIG.SUPABASE_URL.includes('urhyswacrvdesurdjvos') || 
+    CONFIG.SUPABASE_URL.includes('xyzcompany') || 
     CONFIG.SUPABASE_ANON_KEY.includes('placeholder');
 
   let supabase = null;
