@@ -72,11 +72,17 @@
   const initialCaptureActions = getEl('initial-capture-actions');
   const confirmRetakeActions = getEl('confirm-retake-actions');
   const btnConfirmNext = getEl('btn-confirm-next');
+  const btnFinishEarly = getEl('btn-finish-early');
   const btnCancelRetake = getEl('btn-cancel-retake');
   const confirmBtnLabel = getEl('confirm-btn-label');
+  const finishEarlyBtnLabel = getEl('finish-early-btn-label');
 
   const reviewGrid = getEl('review-grid');
+  const reviewTitle = getEl('review-title');
   const btnSubmitAll = getEl('btn-submit-all');
+  const submitAllLabel = getEl('submit-all-label');
+  const btnAddMoreSlots = getEl('btn-add-more-slots');
+  const addMoreLabel = getEl('add-more-label');
   const btnRestart = getEl('btn-restart');
 
   const uploadingOverlay = getEl('uploading-overlay');
@@ -145,6 +151,7 @@
   // --- Step & UI Management ---
 
   function updateStepIndicator() {
+    const activeCount = state.slots.filter(Boolean).length;
     stepLabel.textContent = `Photo / Video ${state.currentSlot + 1} of ${CONFIG.TOTAL_ITEMS}`;
     slotInstructionTitle.textContent = `Capture or Select Item #${state.currentSlot + 1}`;
     
@@ -152,7 +159,7 @@
     const dots = stepDotsContainer.children;
     for (let i = 0; i < dots.length; i++) {
       dots[i].className = 'step-dot';
-      if (i < state.currentSlot) {
+      if (state.slots[i]) {
         dots[i].classList.add('completed');
       } else if (i === state.currentSlot) {
         dots[i].classList.add('active');
@@ -160,9 +167,15 @@
     }
 
     if (state.currentSlot === CONFIG.TOTAL_ITEMS - 1) {
-      confirmBtnLabel.textContent = 'Save & Review All 5 Items';
+      confirmBtnLabel.textContent = 'Save & Review (All 5 Selected)';
+      if (btnFinishEarly) btnFinishEarly.style.display = 'none';
     } else {
-      confirmBtnLabel.textContent = `Looks Good! Proceed to #${state.currentSlot + 2}`;
+      confirmBtnLabel.textContent = `Save & Continue to #${state.currentSlot + 2}`;
+      if (btnFinishEarly) {
+        btnFinishEarly.style.display = 'inline-flex';
+        const projectedCount = state.activeSlotDraft ? (state.slots[state.currentSlot] ? activeCount : activeCount + 1) : activeCount;
+        finishEarlyBtnLabel.textContent = `Done! Review & Submit (${projectedCount || 1} of 5)`;
+      }
     }
   }
 
@@ -250,17 +263,47 @@
 
   // --- Review Screen Rendering ---
 
+  function getValidSlots() {
+    return state.slots.filter(Boolean);
+  }
+
   function renderReviewScreen() {
     reviewGrid.innerHTML = '';
+    const committedItems = [];
+    
+    // Collect non-empty slots with their original index
     state.slots.forEach((item, index) => {
+      if (item) {
+        committedItems.push({ item, index });
+      }
+    });
+
+    const totalCount = committedItems.length;
+    if (reviewTitle) {
+      reviewTitle.textContent = `Review Your ${totalCount} ${totalCount === 1 ? 'Memory' : 'Memories'}`;
+    }
+    if (submitAllLabel) {
+      submitAllLabel.textContent = `Send ${totalCount} ${totalCount === 1 ? 'Memory' : 'Memories'} to Is & Mimi`;
+    }
+
+    if (btnAddMoreSlots) {
+      if (totalCount < CONFIG.TOTAL_ITEMS) {
+        btnAddMoreSlots.style.display = 'inline-flex';
+        addMoreLabel.textContent = `+ Add Another Photo/Video (${totalCount}/${CONFIG.TOTAL_ITEMS})`;
+      } else {
+        btnAddMoreSlots.style.display = 'none';
+      }
+    }
+
+    committedItems.forEach(({ item, index }, displayIndex) => {
       const card = document.createElement('div');
-      card.className = `review-item ${index === 0 ? 'span-2' : ''}`;
+      card.className = `review-item ${displayIndex === 0 && totalCount > 1 ? 'span-2' : ''}`;
 
       if (item.type === 'image') {
         const img = document.createElement('img');
         img.src = item.previewUrl;
         img.className = 'review-thumbnail';
-        img.alt = `Memory #${index + 1}`;
+        img.alt = `Memory #${displayIndex + 1}`;
         card.appendChild(img);
       } else {
         const video = document.createElement('video');
@@ -274,12 +317,20 @@
 
       const badge = document.createElement('div');
       badge.className = 'review-badge';
-      badge.textContent = `#${index + 1}`;
+      badge.textContent = `#${displayIndex + 1}`;
       card.appendChild(badge);
+
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.position = 'absolute';
+      buttonContainer.style.bottom = '8px';
+      buttonContainer.style.right = '8px';
+      buttonContainer.style.display = 'flex';
+      buttonContainer.style.gap = '6px';
 
       const retakeBtn = document.createElement('button');
       retakeBtn.type = 'button';
       retakeBtn.className = 'review-retake-btn';
+      retakeBtn.style.position = 'static';
       retakeBtn.textContent = 'Retake';
       retakeBtn.addEventListener('click', () => {
         state.currentSlot = index;
@@ -287,8 +338,32 @@
         switchScreen('capture');
         renderSlotUI();
       });
-      card.appendChild(retakeBtn);
+      buttonContainer.appendChild(retakeBtn);
 
+      // Allow deleting/removing an item from the review screen if more than 1 item exists
+      if (totalCount > 1) {
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'review-retake-btn';
+        removeBtn.style.position = 'static';
+        removeBtn.style.background = 'rgba(253, 237, 237, 0.95)';
+        removeBtn.style.color = '#B23B3B';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => {
+          if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+          // Shift remaining items so slots stay compact
+          const remaining = state.slots.filter((_, i) => i !== index);
+          while (remaining.length < CONFIG.TOTAL_ITEMS) {
+            remaining.push(null);
+          }
+          state.slots = remaining;
+          renderReviewScreen();
+          showToast('Item removed.');
+        });
+        buttonContainer.appendChild(removeBtn);
+      }
+
+      card.appendChild(buttonContainer);
       reviewGrid.appendChild(card);
     });
   }
@@ -296,9 +371,9 @@
   // --- Upload Handlers ---
 
   // Demo fallback simulation when testing without live Supabase credentials
-  async function simulateUploadProgress(statusCallback) {
-    for (let i = 1; i <= CONFIG.TOTAL_ITEMS; i++) {
-      statusCallback(`Demo Mode: Uploading item ${i} of ${CONFIG.TOTAL_ITEMS}...`, (i / CONFIG.TOTAL_ITEMS) * 90);
+  async function simulateUploadProgress(validSlotsCount, statusCallback) {
+    for (let i = 1; i <= validSlotsCount; i++) {
+      statusCallback(`Demo Mode: Uploading item ${i} of ${validSlotsCount}...`, (i / validSlotsCount) * 90);
       await new Promise(resolve => setTimeout(resolve, 450));
     }
     statusCallback('Finalizing uploads...', 100);
@@ -325,6 +400,12 @@
   }
 
   async function handleSubmitAll() {
+    const validItems = getValidSlots();
+    if (validItems.length === 0) {
+      showToast('Please capture or select at least 1 photo or video.');
+      return;
+    }
+
     uploadingOverlay.classList.add('active');
     uploadStatusText.textContent = 'Preparing uploads...';
     progressFill.style.width = '10%';
@@ -332,28 +413,29 @@
 
     const sanitizedName = sanitizeName(state.guestName);
     const sessionCode = generateSessionCode(8);
+    const totalToUpload = validItems.length;
 
     try {
       if (isPlaceholderConfig) {
         // Run demo simulation mode if real Supabase keys aren't configured yet
-        await simulateUploadProgress((msg, pct) => {
+        await simulateUploadProgress(totalToUpload, (msg, pct) => {
           uploadStatusText.textContent = msg;
           progressFill.style.width = `${pct}%`;
           progressPercentage.textContent = `${Math.round(pct)}%`;
         });
       } else {
         // Direct upload to Supabase Storage
-        for (let i = 0; i < state.slots.length; i++) {
-          const item = state.slots[i];
+        for (let i = 0; i < validItems.length; i++) {
+          const item = validItems[i];
           const ext = getFileExtension(item.file);
           // Strict naming convention: [SanitizedUserName]_[8-Char-Alphanumerical-Code]_[Counter].[ext]
           const fileName = `${sanitizedName}_${sessionCode}_${i + 1}.${ext}`;
 
-          uploadStatusText.textContent = `Uploading memory ${i + 1} of ${CONFIG.TOTAL_ITEMS}...`;
+          uploadStatusText.textContent = `Uploading memory ${i + 1} of ${totalToUpload}...`;
 
           await uploadItemToSupabase(fileName, item.file);
 
-          const overallPct = Math.round(((i + 1) / CONFIG.TOTAL_ITEMS) * 100);
+          const overallPct = Math.round(((i + 1) / totalToUpload) * 100);
           progressFill.style.width = `${overallPct}%`;
           progressPercentage.textContent = `${overallPct}%`;
         }
@@ -454,22 +536,57 @@
       }
 
       if (state.activeSlotDraft) {
-        // Save draft to committed slots
         state.slots[state.currentSlot] = state.activeSlotDraft;
         state.activeSlotDraft = null;
       }
 
       if (state.currentSlot < CONFIG.TOTAL_ITEMS - 1) {
-        // Advance to next slot
-        state.currentSlot++;
+        // Find next empty slot or advance by 1
+        const nextEmpty = state.slots.findIndex((slot, idx) => idx > state.currentSlot && !slot);
+        state.currentSlot = (nextEmpty !== -1) ? nextEmpty : state.currentSlot + 1;
         clearPreview();
         renderSlotUI();
       } else {
-        // All 5 items captured, advance to review screen
+        // Reached item 5, go to review
         renderReviewScreen();
         switchScreen('review');
       }
     });
+
+    // 4b. Finish Early Action (submit less than 5 items)
+    if (btnFinishEarly) {
+      btnFinishEarly.addEventListener('click', () => {
+        if (state.activeSlotDraft) {
+          state.slots[state.currentSlot] = state.activeSlotDraft;
+          state.activeSlotDraft = null;
+        }
+
+        const validCount = getValidSlots().length;
+        if (validCount === 0) {
+          showToast('Please capture or select at least 1 photo/video.');
+          return;
+        }
+
+        renderReviewScreen();
+        switchScreen('review');
+      });
+    }
+
+    // 4c. Add More Slots from Review screen
+    if (btnAddMoreSlots) {
+      btnAddMoreSlots.addEventListener('click', () => {
+        // Find the first empty slot
+        const emptyIndex = state.slots.findIndex(slot => !slot);
+        if (emptyIndex !== -1) {
+          state.currentSlot = emptyIndex;
+          state.activeSlotDraft = null;
+          switchScreen('capture');
+          renderSlotUI();
+        } else {
+          showToast('You already have all 5 items!');
+        }
+      });
+    }
 
     // 5. Submit All
     btnSubmitAll.addEventListener('click', handleSubmitAll);

@@ -48,7 +48,7 @@
            ========================================================== -->
       <section id="screen-welcome" class="screen active">
         <div class="form-group">
-          <label class="form-label" for="guest-name-input">YOUR NAME / GUEST NAME</label>
+          <label class="form-label" for="guest-name-input">YOUR NAME</label>
           <input 
             type="text" 
             id="guest-name-input" 
@@ -62,7 +62,7 @@
         </div>
 
         <button type="button" id="btn-start" class="btn btn-primary" disabled>
-          <span>Start Capturing (5 Items)</span>
+          <span>Start Capturing (Up to 5 Items)</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
@@ -147,10 +147,17 @@
         <!-- Confirmation & Retake Controls (visible once media is loaded) -->
         <div class="action-buttons-group" id="confirm-retake-actions" style="display: none;">
           <button type="button" id="btn-confirm-next" class="btn btn-gold">
-            <span id="confirm-btn-label">Looks Good! Proceed to Next</span>
+            <span id="confirm-btn-label">Save &amp; Add Another</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
+          </button>
+          <button type="button" id="btn-finish-early" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span id="finish-early-btn-label">Done! Review &amp; Submit Now</span>
           </button>
           <button type="button" id="btn-cancel-retake" class="btn btn-danger-outline">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -167,14 +174,14 @@
            ========================================================== -->
       <section id="screen-review" class="screen">
         <div style="text-align: center; margin-bottom: 16px;">
-          <h2 style="font-family: var(--font-serif); font-size: 1.4rem;">Review Your 5 Memories</h2>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">
-            Ready to send to the bride and groom! You can tap retake on any item if needed.
+          <h2 id="review-title" style="font-family: var(--font-serif); font-size: 1.4rem;">Review Your Memories</h2>
+          <p id="review-subtitle" style="font-size: 0.85rem; color: var(--text-muted);">
+            Ready to send to the bride and groom! You can tap retake or remove any item, or add more up to 5.
           </p>
         </div>
 
         <div class="review-grid" id="review-grid">
-          <!-- Populated dynamically with 5 preview items -->
+          <!-- Populated dynamically with preview items -->
         </div>
 
         <div class="action-buttons-group">
@@ -183,7 +190,14 @@
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
-            <span>Send All 5 to Is &amp; Mimi</span>
+            <span id="submit-all-label">Send All to Is &amp; Mimi</span>
+          </button>
+          <button type="button" id="btn-add-more-slots" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span id="add-more-label">+ Add Another Photo/Video</span>
           </button>
         </div>
       </section>
@@ -198,8 +212,7 @@
               <path d="M20 6L9 17l-5-5"></path>
             </svg>
           </div>
-          <h2 style="font-family: var(--font-serif); font-size: 1.6rem; margin-bottom: 8px;">Terima Kasih!</h2>
-          <div class="script-title" style="font-size: 3rem; margin: 4px 0 10px 0;">love</div>
+          <h2 style="font-family: var(--font-serif); font-size: 1.6rem; margin-bottom: 8px;">Thank You!</h2>
           <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px;">
             Your photos &amp; videos have been safely delivered to <strong>Is &amp; Mimi</strong>. Thank you for making our special day unforgettable!
           </p>
