@@ -33,6 +33,7 @@
 
   // --- Application State ---
   const state = {
+    lang: (typeof localStorage !== 'undefined' && localStorage.getItem('wephoto_lang')) || 'en',
     guestName: '',
     currentSlot: 0, // 0 to 4 (representing items 1 to 5)
     slots: Array(CONFIG.TOTAL_ITEMS).fill(null), // Array of objects: { file: File, previewUrl: string, type: 'image'|'video' }
@@ -49,6 +50,170 @@
 
   // Inputs & buttons
   const getEl = (id) => (typeof document !== 'undefined' ? document.getElementById(id) : null);
+
+  // Language toggle elements
+  const btnLangToggle = getEl('btn-lang-toggle');
+  const langPillEn = getEl('lang-pill-en');
+  const langPillBm = getEl('lang-pill-bm');
+  const headerSubheading = getEl('header-subheading');
+  const headerTitle = getEl('header-title');
+  const slotInstructionDesc = (typeof document !== 'undefined') ? document.querySelector('#capture-placeholder p') : null;
+  const btnPhotoLabel = getEl('btn-photo-label');
+  const btnVideoLabel = getEl('btn-video-label');
+  const btnGalleryLabel = getEl('btn-gallery-label');
+  const cancelRetakeLabel = getEl('cancel-retake-label');
+  const reviewSubtitle = getEl('review-subtitle');
+  const successHeading = getEl('success-heading');
+  const successLoveTitle = getEl('success-love-title');
+  const successMessage = getEl('success-message');
+  const btnRestartLabel = getEl('btn-restart-label');
+  const uploadModalHeading = getEl('upload-modal-heading');
+
+  // --- Multi-language Dictionary ---
+  const I18N = {
+    en: {
+      heroSubheading: 'SHARE THE',
+      heroTitle: 'love',
+      nameLabel: 'YOUR NAME',
+      namePlaceholder: 'e.g. Sarah & John',
+      nameHint: 'Let Is & Mimi know who captured these moments!',
+      btnStart: 'Start Capturing (Up to 5 Items)',
+      stepPrefix: 'Photo / Video',
+      stepOf: 'of',
+      slotInstructionTitle: (num) => `Capture or Select Item #${num}`,
+      slotInstructionDesc: 'Take a new photo/video or choose from your phone library.',
+      btnPhoto: 'Photo',
+      btnVideo: 'Video',
+      btnGallery: 'Choose from Gallery / Files',
+      saveAndContinue: (num) => `Save & Continue to #${num}`,
+      saveAllSelected: 'Save & Review (All 5 Selected)',
+      finishEarly: (num) => `Done! Review & Submit (${num} of 5)`,
+      cancelRetake: 'Cancel & Retake',
+      reviewTitle: (count) => `Review Your ${count} ${count === 1 ? 'Memory' : 'Memories'}`,
+      reviewSubtitle: 'Ready to send to the bride and groom! You can tap retake or remove any item, or add more up to 5.',
+      submitAll: (count) => `Send ${count} ${count === 1 ? 'Memory' : 'Memories'} to Is & Mimi`,
+      addMore: (count) => `+ Add Another Photo/Video (${count}/${CONFIG.TOTAL_ITEMS})`,
+      retake: 'Retake',
+      remove: 'Remove',
+      successHeading: 'Thank You!',
+      successLoveTitle: 'love',
+      successMessage: 'Your photos & videos have been safely delivered to <strong>Is & Mimi</strong>. Thank you for making our special day unforgettable!',
+      btnRestart: 'Capture Another Set',
+      modalHeading: 'Uploading to Memories...',
+      modalPreparing: 'Preparing your media...',
+      modalUploadingItem: (curr, total) => `Uploading memory ${curr} of ${total}...`,
+      modalComplete: 'Complete!',
+      toastDiscarded: 'Item discarded. You can retake or choose another.',
+      toastRemoved: 'Item removed.',
+      toastNoMedia: 'Please capture or select a photo/video first.',
+      toastAtLeastOne: 'Please capture or select at least 1 photo or video.',
+      toastInvalidFile: 'Please select a valid photo or video file.',
+      toastFileTooLarge: (max) => `File is too large. Max size is ${max}MB.`,
+      toastMaxItems: 'You already have all 5 items!'
+    },
+    bm: {
+      heroSubheading: 'RAIKAN',
+      heroTitle: 'cinta',
+      nameLabel: 'NAMA ANDA',
+      namePlaceholder: 'cth. Siti & Arif',
+      nameHint: 'Kongsi memori indah bersama pasangan pengantin Is & Mimi!',
+      btnStart: 'Mula Rakam (Sehingga 5 Gambar/Video)',
+      stepPrefix: 'Gambar / Video',
+      stepOf: 'daripada',
+      slotInstructionTitle: (num) => `Rakam atau Pilih Item #${num}`,
+      slotInstructionDesc: 'Ambil gambar/video baharu atau pilih dari galeri telefon anda.',
+      btnPhoto: 'Gambar',
+      btnVideo: 'Video',
+      btnGallery: 'Pilih dari Galeri / Fail',
+      saveAndContinue: (num) => `Simpan & Teruskan ke #${num}`,
+      saveAllSelected: 'Simpan & Semak (Semua 5 Dipilih)',
+      finishEarly: (num) => `Selesai! Semak & Hantar (${num} daripada 5)`,
+      cancelRetake: 'Batal & Rakam Semula',
+      reviewTitle: (count) => `Semak ${count} Memori Anda`,
+      reviewSubtitle: 'Sedia untuk dihantar kepada pengantin! Anda boleh rakam semula, padam, atau tambah lagi sehingga 5.',
+      submitAll: (count) => `Hantar ${count} Memori kepada Is & Mimi`,
+      addMore: (count) => `+ Tambah Gambar/Video (${count}/${CONFIG.TOTAL_ITEMS})`,
+      retake: 'Rakam Semula',
+      remove: 'Padam',
+      successHeading: 'Terima Kasih!',
+      successLoveTitle: 'cinta',
+      successMessage: 'Gambar & video anda telah selamat dihantar kepada <strong>Is & Mimi</strong>. Terima kasih kerana memeriahkan hari bahagia kami!',
+      btnRestart: 'Rakam Set Baharu',
+      modalHeading: 'Sedang Memuat Naik...',
+      modalPreparing: 'Menyediakan media anda...',
+      modalUploadingItem: (curr, total) => `Memuat naik memori ${curr} daripada ${total}...`,
+      modalComplete: 'Selesai!',
+      toastDiscarded: 'Item dibatalkan. Sila rakam atau pilih semula.',
+      toastRemoved: 'Item telah dipadam.',
+      toastNoMedia: 'Sila rakam atau pilih gambar/video terlebih dahulu.',
+      toastAtLeastOne: 'Sila rakam sekurang-kurangnya 1 gambar atau video.',
+      toastInvalidFile: 'Sila pilih fail gambar atau video yang sah.',
+      toastFileTooLarge: (max) => `Saiz fail terlalu besar. Had maksimum ialah ${max}MB.`,
+      toastMaxItems: 'Anda telah memilih kesemua 5 item!'
+    }
+  };
+
+  function t(key, ...args) {
+    const lang = state.lang || 'en';
+    const dict = I18N[lang] || I18N.en;
+    const val = dict[key] || I18N.en[key];
+    if (typeof val === 'function') {
+      return val(...args);
+    }
+    return val || '';
+  }
+
+  function applyLanguage(lang) {
+    state.lang = lang;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('wephoto_lang', lang);
+    }
+
+    if (langPillEn && langPillBm) {
+      if (lang === 'bm') {
+        langPillBm.classList.add('active');
+        langPillEn.classList.remove('active');
+      } else {
+        langPillEn.classList.add('active');
+        langPillBm.classList.remove('active');
+      }
+    }
+
+    // Header title
+    if (headerSubheading) headerSubheading.textContent = t('heroSubheading');
+    if (headerTitle) headerTitle.textContent = t('heroTitle');
+
+    // Welcome screen
+    const nameLabel = document.querySelector('label[for="guest-name-input"]');
+    if (nameLabel) nameLabel.textContent = t('nameLabel');
+    if (guestNameInput) guestNameInput.placeholder = t('namePlaceholder');
+    const nameHint = document.querySelector('.form-hint');
+    if (nameHint) nameHint.textContent = t('nameHint');
+    const btnStartSpan = btnStart ? btnStart.querySelector('span') : null;
+    if (btnStartSpan) btnStartSpan.textContent = t('btnStart');
+
+    // Capture screen static labels
+    if (btnPhotoLabel) btnPhotoLabel.textContent = t('btnPhoto');
+    if (btnVideoLabel) btnVideoLabel.textContent = t('btnVideo');
+    if (btnGalleryLabel) btnGalleryLabel.textContent = t('btnGallery');
+    if (cancelRetakeLabel) cancelRetakeLabel.textContent = t('cancelRetake');
+    if (slotInstructionDesc) slotInstructionDesc.textContent = t('slotInstructionDesc');
+
+    // Success screen
+    if (successHeading) successHeading.textContent = t('successHeading');
+    if (successLoveTitle) successLoveTitle.textContent = t('successLoveTitle');
+    if (successMessage) successMessage.innerHTML = t('successMessage');
+    if (btnRestartLabel) btnRestartLabel.textContent = t('btnRestart');
+
+    // Upload Modal Heading
+    if (uploadModalHeading) uploadModalHeading.textContent = t('modalHeading');
+
+    // Update active screen dynamic elements
+    updateStepIndicator();
+    if (screens.review && screens.review.classList.contains('active')) {
+      renderReviewScreen();
+    }
+  }
 
   const guestNameInput = getEl('guest-name-input');
   const btnStart = getEl('btn-start');
@@ -152,8 +317,9 @@
 
   function updateStepIndicator() {
     const activeCount = state.slots.filter(Boolean).length;
-    stepLabel.textContent = `Photo / Video ${state.currentSlot + 1} of ${CONFIG.TOTAL_ITEMS}`;
-    slotInstructionTitle.textContent = `Capture or Select Item #${state.currentSlot + 1}`;
+    stepLabel.textContent = `${t('stepPrefix')} ${state.currentSlot + 1} ${t('stepOf')} ${CONFIG.TOTAL_ITEMS}`;
+    slotInstructionTitle.textContent = t('slotInstructionTitle', state.currentSlot + 1);
+    if (slotInstructionDesc) slotInstructionDesc.textContent = t('slotInstructionDesc');
     
     // Update dots
     const dots = stepDotsContainer.children;
@@ -167,14 +333,14 @@
     }
 
     if (state.currentSlot === CONFIG.TOTAL_ITEMS - 1) {
-      confirmBtnLabel.textContent = 'Save & Review (All 5 Selected)';
+      confirmBtnLabel.textContent = t('saveAllSelected');
       if (btnFinishEarly) btnFinishEarly.style.display = 'none';
     } else {
-      confirmBtnLabel.textContent = `Save & Continue to #${state.currentSlot + 2}`;
+      confirmBtnLabel.textContent = t('saveAndContinue', state.currentSlot + 2);
       if (btnFinishEarly) {
         btnFinishEarly.style.display = 'inline-flex';
         const projectedCount = state.activeSlotDraft ? (state.slots[state.currentSlot] ? activeCount : activeCount + 1) : activeCount;
-        finishEarlyBtnLabel.textContent = `Done! Review & Submit (${projectedCount || 1} of 5)`;
+        finishEarlyBtnLabel.textContent = t('finishEarly', projectedCount || 1);
       }
     }
   }
@@ -236,7 +402,7 @@
     if (!file) return;
 
     if (file.size > CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024) {
-      showToast(`File is too large. Max size is ${CONFIG.MAX_FILE_SIZE_MB}MB.`);
+      showToast(t('toastFileTooLarge', CONFIG.MAX_FILE_SIZE_MB));
       return;
     }
 
@@ -244,7 +410,7 @@
     const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|heic|heif|webp|gif)$/i.test(file.name);
 
     if (!isVideo && !isImage) {
-      showToast('Please select a valid photo or video file.');
+      showToast(t('toastInvalidFile'));
       return;
     }
 
@@ -280,16 +446,19 @@
 
     const totalCount = committedItems.length;
     if (reviewTitle) {
-      reviewTitle.textContent = `Review Your ${totalCount} ${totalCount === 1 ? 'Memory' : 'Memories'}`;
+      reviewTitle.textContent = t('reviewTitle', totalCount);
+    }
+    if (reviewSubtitle) {
+      reviewSubtitle.textContent = t('reviewSubtitle');
     }
     if (submitAllLabel) {
-      submitAllLabel.textContent = `Send ${totalCount} ${totalCount === 1 ? 'Memory' : 'Memories'} to Is & Mimi`;
+      submitAllLabel.textContent = t('submitAll', totalCount);
     }
 
     if (btnAddMoreSlots) {
       if (totalCount < CONFIG.TOTAL_ITEMS) {
         btnAddMoreSlots.style.display = 'inline-flex';
-        addMoreLabel.textContent = `+ Add Another Photo/Video (${totalCount}/${CONFIG.TOTAL_ITEMS})`;
+        addMoreLabel.textContent = t('addMore', totalCount);
       } else {
         btnAddMoreSlots.style.display = 'none';
       }
@@ -331,7 +500,7 @@
       retakeBtn.type = 'button';
       retakeBtn.className = 'review-retake-btn';
       retakeBtn.style.position = 'static';
-      retakeBtn.textContent = 'Retake';
+      retakeBtn.textContent = t('retake');
       retakeBtn.addEventListener('click', () => {
         state.currentSlot = index;
         state.activeSlotDraft = null;
@@ -348,7 +517,7 @@
         removeBtn.style.position = 'static';
         removeBtn.style.background = 'rgba(253, 237, 237, 0.95)';
         removeBtn.style.color = '#B23B3B';
-        removeBtn.textContent = 'Remove';
+        removeBtn.textContent = t('remove');
         removeBtn.addEventListener('click', () => {
           if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
           // Shift remaining items so slots stay compact
@@ -358,7 +527,7 @@
           }
           state.slots = remaining;
           renderReviewScreen();
-          showToast('Item removed.');
+          showToast(t('toastRemoved'));
         });
         buttonContainer.appendChild(removeBtn);
       }
@@ -402,12 +571,13 @@
   async function handleSubmitAll() {
     const validItems = getValidSlots();
     if (validItems.length === 0) {
-      showToast('Please capture or select at least 1 photo or video.');
+      showToast(t('toastAtLeastOne'));
       return;
     }
 
     uploadingOverlay.classList.add('active');
-    uploadStatusText.textContent = 'Preparing uploads...';
+    if (uploadModalHeading) uploadModalHeading.textContent = t('modalHeading');
+    uploadStatusText.textContent = t('modalPreparing');
     progressFill.style.width = '10%';
     progressPercentage.textContent = '10%';
 
@@ -431,7 +601,7 @@
           // Strict naming convention: [SanitizedUserName]_[8-Char-Alphanumerical-Code]_[Counter].[ext]
           const fileName = `${sanitizedName}_${sessionCode}_${i + 1}.${ext}`;
 
-          uploadStatusText.textContent = `Uploading memory ${i + 1} of ${totalToUpload}...`;
+          uploadStatusText.textContent = t('modalUploadingItem', i + 1, totalToUpload);
 
           await uploadItemToSupabase(fileName, item.file);
 
@@ -442,7 +612,7 @@
       }
 
       // Upload Successful
-      uploadStatusText.textContent = 'Complete!';
+      uploadStatusText.textContent = t('modalComplete');
       progressFill.style.width = '100%';
       progressPercentage.textContent = '100%';
 
@@ -485,6 +655,14 @@
   // --- Event Listeners Setup ---
 
   function initEventListeners() {
+    // Language Toggle Click
+    if (btnLangToggle) {
+      btnLangToggle.addEventListener('click', () => {
+        const nextLang = (state.lang === 'bm') ? 'en' : 'bm';
+        applyLanguage(nextLang);
+      });
+    }
+
     // 1. Welcome Screen
     guestNameInput.addEventListener('input', (e) => {
       const val = e.target.value.trim();
@@ -525,13 +703,13 @@
       }
       state.activeSlotDraft = null;
       clearPreview();
-      showToast('Item discarded. You can retake or choose another.');
+      showToast(t('toastDiscarded'));
     });
 
     // 4. Confirm / Proceed Action
     btnConfirmNext.addEventListener('click', () => {
       if (!state.activeSlotDraft && !state.slots[state.currentSlot]) {
-        showToast('Please capture or select a photo/video first.');
+        showToast(t('toastNoMedia'));
         return;
       }
 
@@ -563,7 +741,7 @@
 
         const validCount = getValidSlots().length;
         if (validCount === 0) {
-          showToast('Please capture or select at least 1 photo/video.');
+          showToast(t('toastAtLeastOne'));
           return;
         }
 
@@ -583,7 +761,7 @@
           switchScreen('capture');
           renderSlotUI();
         } else {
-          showToast('You already have all 5 items!');
+          showToast(t('toastMaxItems'));
         }
       });
     }
@@ -598,6 +776,7 @@
   // Initialize in browser
   if (typeof document !== 'undefined') {
     initEventListeners();
+    applyLanguage(state.lang);
   }
 
   // Export helpers for unit testing if running in Node.js
